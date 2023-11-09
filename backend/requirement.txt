@@ -1,0 +1,10 @@
+opencv-python
+scipy
+spacy
+imutils
+pandas
+pytesseract
+uvicorn
+sqlalchemy
+pymysql
+pyjwt
