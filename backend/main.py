@@ -8,27 +8,37 @@ import cv2
 import uvicorn
 import predictions as pred
 import database
+import user_models
 from pydantic import BaseModel
 from typing import Annotated
-import models
-from security import generate_token, validate_token
+from auth import generate_token, validate_token
 from sqlalchemy.orm import Session
+from user_routes import user_router
+from fastapi.middleware.cors import CORSMiddleware
 
 # docscan = utils.DocumentScan()
-app = FastAPI()
+app = FastAPI(title='FastAPI JWT', openapi_url='/openapi.json', docs_url='/docs', description='fastapi jwt')
+app.include_router(user_router)
 template = Jinja2Templates(directory='templates')
 # app.secret_key = 'scanapp'
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+
 
 @app.get('/')
 def home(request: Request):
     return {"message": "Hello World"}
 
-class UserBase(BaseModel):
-    username: str
-    email: str
-
 @app.post('/signup')
-def signup(user: models.User):
+def signup(user: user_models.User):
     try:
         if any(field is None for field in [user.email, user.username, user.password]):
             raise HTTPException(status_code=400, detail="Information don't enough!")
@@ -47,22 +57,24 @@ def signup(user: models.User):
     except ValueError as err:
         raise HTTPException(status_code=500, detail=err)
 
-def verify(user: models.User, userDb: models.User):
+def verify(user: user_models.User, userDb: user_models.User):
     if userDb is None:
         return ["User not found!", False]
     if user.email != userDb.get('email'):
         return ["Wrong email!", False]
     elif user.password != userDb.get('password'):
         return ["Wrong password!", False]
+    elif user.username != userDb.get('username'):
+        return ["Wrong username!", False]
     return ["", True]
 
 
 @app.post('/signin')
-def signin(user: models.User):
+def signin(user: user_models.User):
     try:
         userDb = database.getOne({"email": user.email})
         check = verify(user, userDb)
-        if check[1] == True:
+        if check[1] is True:
             token = generate_token(user.email)
             return {
                 "user": userDb,
@@ -70,7 +82,8 @@ def signin(user: models.User):
             }
         raise HTTPException(status_code=400, detail=check[0])
     except ValueError as err:
-        raise HTTPException(status_code=500, detail=err)
+        raise HTTPException(status_code=500, detail="Sign In don't succeed!")
+
 
 @app.get("/")
 def index():
