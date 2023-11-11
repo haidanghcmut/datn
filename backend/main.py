@@ -12,14 +12,15 @@ import user_models
 from pydantic import BaseModel
 from typing import Annotated
 from auth import generate_token, validate_token
-from sqlalchemy.orm import Session
 from user_routes import user_router
 from fastapi.middleware.cors import CORSMiddleware
+import spacy
 
 # docscan = utils.DocumentScan()
 app = FastAPI(title='FastAPI JWT', openapi_url='/openapi.json', docs_url='/docs', description='fastapi jwt')
 app.include_router(user_router)
 template = Jinja2Templates(directory='templates')
+model_ner = spacy.load('./output/model-best/')
 # app.secret_key = 'scanapp'
 
 app.add_middleware(
@@ -30,12 +31,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get('/predictions')
 
 
 
 @app.get('/')
 def home(request: Request):
-    return {"message": "Hello World"}
+    return {"message": "Hello DATN"}
 
 @app.post('/signup')
 def signup(user: user_models.User):
@@ -85,9 +87,6 @@ def signin(user: user_models.User):
         raise HTTPException(status_code=500, detail="Sign In don't succeed!")
 
 
-@app.get("/")
-def index():
-    return {"message": "Welcome"}
 
 if __name__ == "__main__":
     uvicorn.run(app, host='localhost', port=8000)
