@@ -1,12 +1,12 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Request
 from fastapi.templating import Jinja2Templates
 from jinja2 import Environment, FileSystemLoader
-import settings
-import utils
+import model.settings
+import model.utils
 import numpy as np
 import cv2
 import uvicorn
-import predictions as pred
+import model.predictions as pred
 import database
 import user_models
 from pydantic import BaseModel
