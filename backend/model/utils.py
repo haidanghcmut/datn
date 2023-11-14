@@ -1,5 +1,5 @@
 import os
-import settings
+import model.settings
 import cv2
 import numpy as np
 from imutils.perspective import four_point_transform
