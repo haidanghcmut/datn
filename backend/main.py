@@ -10,11 +10,16 @@ import model.predictions as pred
 import database
 import user_models
 from pydantic import BaseModel
-from typing import Annotated
 from auth import generate_token, validate_token
 from user_routes import user_router
 from fastapi.middleware.cors import CORSMiddleware
 import spacy
+from fastapi.responses import JSONResponse
+import numpy as np
+from io import BytesIO
+from PIL import Image
+import pytesseract
+import base64
 
 # docscan = utils.DocumentScan()
 app = FastAPI(title='FastAPI JWT', openapi_url='/openapi.json', docs_url='/docs', description='fastapi jwt')
@@ -31,9 +36,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get('/predictions')
-
-
+@app.post('/predictions')
+async def predictions(file: UploadFile = File(...)):
+    try:
+      contents = await file.read()
+      image = cv2.imdecode(np.frombuffer(contents, np.uint8), -1)
+      img_bb, entities = pred.getPredictions(image)
+       # Chuyển đổi ảnh thành định dạng base64 để trả về
+      _, img_encoded = cv2.imencode('.jpeg', img_bb)
+      img_base64 = base64.b64encode(img_encoded).decode('utf-8')
+      return JSONResponse(content={"entities": entities})
+    except Exception as e:
+        return {"error": str(e)}
 
 @app.get('/')
 def home(request: Request):
@@ -72,7 +86,7 @@ def verify(user: user_models.User, userDb: user_models.User):
 
 
 @app.post('/signin')
-def signin(user: user_models.User):
+def signin(user: user_models.User, token: str = Depends(validate_token)):
     try:
         userDb = database.getOne({"email": user.email})
         check = verify(user, userDb)

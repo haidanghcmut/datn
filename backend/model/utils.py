@@ -9,7 +9,7 @@ def save_upload_image(fileObj):
     filename = fileObj.filename    
     name, ext = filename.split('.')    
     save_filename = 'upload.'+ext
-    upload_image_path = settings.join_path(settings.SAVE_DIR, 
+    upload_image_path = model.settings.join_path(model.settings.SAVE_DIR, 
                                            save_filename)
     
     fileObj.save(upload_image_path)
@@ -41,7 +41,6 @@ class DocumentScan():
     
     @staticmethod
     def apply_brightness_contrast(input_img, brightness=0, contrast=0):
-    
         if brightness != 0:
             if brightness > 0:
                 shadow = brightness
@@ -51,7 +50,6 @@ class DocumentScan():
                 highlight = 255 + brightness
             alpha_b = (highlight - shadow)/255
             gamma_b = shadow
-            
             buf = cv2.addWeighted(input_img, alpha_b, input_img, 0, gamma_b)
         else:
             buf = input_img.copy()
@@ -60,21 +58,16 @@ class DocumentScan():
             f = 131*(contrast + 127)/(127*(131-contrast))
             alpha_c = f
             gamma_c = 127*(1-f)
-            
             buf = cv2.addWeighted(buf, alpha_c, buf, 0, gamma_c)
-
         return buf
     
     def document_scanner(self, image_path):
         self.image = cv2.imread(image_path)
         img_re, self.size = self.resizer(self.image)
         filename = 'resize_image.jpg'
-        RESIZE_IMAGE_PATH = settings.join_path(settings.MEDIA_DIR, filename)
-        
+        RESIZE_IMAGE_PATH = model.settings.join_path(model.settings.MEDIA_DIR, filename)
         cv2.imwrite(RESIZE_IMAGE_PATH, img_re)
-        
         try:
-                
             detail = cv2.detailEnhance(img_re, sigma_s=20, sigma_r=0.15)
             gray = cv2.cvtColor(detail, cv2.COLOR_BGR2GRAY)  # GRAYSCALE IMAGE
             blur = cv2.GaussianBlur(gray, (5, 5), 0)
