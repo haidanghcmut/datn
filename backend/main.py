@@ -10,16 +10,20 @@ import model.predictions as pred
 import database
 import user_models
 from pydantic import BaseModel
-from typing import Annotated
 from auth import generate_token, validate_token
 from user_routes import user_router
 from fastapi.middleware.cors import CORSMiddleware
 import spacy
+from fastapi.responses import JSONResponse
+import numpy as np
+from io import BytesIO
+from PIL import Image
+import pytesseract
+import base64
 
 # docscan = utils.DocumentScan()
 app = FastAPI(title='FastAPI JWT', openapi_url='/openapi.json', docs_url='/docs', description='fastapi jwt')
 app.include_router(user_router)
-template = Jinja2Templates(directory='templates')
 model_ner = spacy.load('./output/model-best/')
 # app.secret_key = 'scanapp'
 
@@ -31,15 +35,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get('/predictions')
 
-
+@app.post('/predictions/')
+async def predictions(file: UploadFile = File(...)):
+    try:
+      contents = await file.read()
+      image = cv2.imdecode(np.frombuffer(contents, np.uint8), -1)
+      img_bb, entities = pred.getPredictions(image)
+       # Chuyển đổi ảnh thành định dạng base64 để trả về
+      _, img_encoded = cv2.imencode('.jpeg', img_bb)
+      img_base64 = base64.b64encode(img_encoded).decode('utf-8')
+      return JSONResponse(content={"entities": entities})
+    except ValueError as err:
+        raise HTTPException(status_code=500, detail=err)
 
 @app.get('/')
 def home(request: Request):
     return {"message": "Hello DATN"}
 
-@app.post('/signup')
+@app.post('/signup/')
 def signup(user: user_models.User):
     try:
         if any(field is None for field in [user.email, user.username, user.password]):
@@ -71,7 +85,7 @@ def verify(user: user_models.User, userDb: user_models.User):
     return ["", True]
 
 
-@app.post('/signin')
+@app.post('/signin/')
 def signin(user: user_models.User):
     try:
         userDb = database.getOne({"email": user.email})
