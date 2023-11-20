@@ -24,7 +24,6 @@ import base64
 # docscan = utils.DocumentScan()
 app = FastAPI(title='FastAPI JWT', openapi_url='/openapi.json', docs_url='/docs', description='fastapi jwt')
 app.include_router(user_router)
-template = Jinja2Templates(directory='templates')
 model_ner = spacy.load('./output/model-best/')
 # app.secret_key = 'scanapp'
 
@@ -36,7 +35,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post('/predictions')
+@app.post('/predictions/')
 async def predictions(file: UploadFile = File(...)):
     try:
       contents = await file.read()
@@ -46,14 +45,14 @@ async def predictions(file: UploadFile = File(...)):
       _, img_encoded = cv2.imencode('.jpeg', img_bb)
       img_base64 = base64.b64encode(img_encoded).decode('utf-8')
       return JSONResponse(content={"entities": entities})
-    except Exception as e:
-        return {"error": str(e)}
+    except ValueError as err:
+        raise HTTPException(status_code=500, detail=err)
 
 @app.get('/')
 def home(request: Request):
     return {"message": "Hello DATN"}
 
-@app.post('/signup')
+@app.post('/signup/')
 def signup(user: user_models.User):
     try:
         if any(field is None for field in [user.email, user.username, user.password]):
@@ -85,8 +84,8 @@ def verify(user: user_models.User, userDb: user_models.User):
     return ["", True]
 
 
-@app.post('/signin')
-def signin(user: user_models.User, token: str = Depends(validate_token)):
+@app.post('/signin/')
+def signin(user: user_models.User):
     try:
         userDb = database.getOne({"email": user.email})
         check = verify(user, userDb)
