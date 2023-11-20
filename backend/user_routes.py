@@ -27,3 +27,4 @@ async def update_user(id: str, user: User):
 async def delete_user(id: str):
     collection_name.find_one_and_delete({"_id": ObjectId(id)})
     return {"message": "Delete successfully!"}
+

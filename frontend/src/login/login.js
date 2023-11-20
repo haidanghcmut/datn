@@ -2,11 +2,12 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useContext } from "react";
 import { AuthContext } from "../App";
-import { signinUser, setAuthorization } from "../services/axios.js";
+import { signinUser, setAuthorization } from "../services/axios";
 
 export const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [isLoading, setLoading] = useState(false);
   const { setAuthState } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export const Login = () => {
     }
     setLoading(true);
     signinUser({
+      username,
       email,
       password,
     })
@@ -27,7 +29,6 @@ export const Login = () => {
           user: res.data?.user,
         });
         localStorage.setItem("store", JSON.stringify(res.data));
-
         navigate("/predict");
         setLoading(false);
       })
@@ -42,7 +43,22 @@ export const Login = () => {
         <div className="text-3xl font-semibold text-center mb-4 text-green-500">
           ĐĂNG NHẬP
         </div>
-        <form className="space-y-4">
+        <div className="space-y-4">
+          <div>
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium text-gray-600"
+            >
+              Tên người dùng
+            </label>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              className="mt-1 p-3 w-full border rounded-md focus:outline-none focus:ring focus:border-blue-300"
+            />
+          </div>
           <div>
             <label
               htmlFor="email"
@@ -86,7 +102,7 @@ export const Login = () => {
               Đăng nhập
             </button>
           </div>
-        </form>
+        </div>
 
         <div className="text-center">
           <p>

@@ -35,6 +35,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.post('/predictions/')
 async def predictions(file: UploadFile = File(...)):
     try:
