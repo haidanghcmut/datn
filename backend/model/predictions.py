@@ -14,8 +14,7 @@ warnings.filterwarnings('ignore')
 
 ### Load NER model
 model_ner = spacy.load('./output/model-best/')
-
-
+# Làm sạch chữ 
 def cleanText(txt):
     whitespace = string.whitespace
     punctuation = "!#$%&\'()*+:;<=>?[\\]^`{|}~"
@@ -79,8 +78,8 @@ def getPredictions(image):
     # extract data using Pytesseract 
     tessData = pytesseract.image_to_data(image)
     # convert into dataframe
-    tessList = list(map(lambda x:x.split('\t'), tessData.split('\n')))
-    df = pd.DataFrame(tessList[1:],columns=tessList[0])
+    tessList = list(map(lambda x: x.split('\t'), tessData.split('\n')))
+    df = pd.DataFrame(tessList[1:], columns=tessList[0])
     df.dropna(inplace=True) # drop missing values
     df['text'] = df['text'].apply(cleanText)
 
@@ -94,22 +93,21 @@ def getPredictions(image):
     # converting doc in json
     docjson = doc.to_json()
     doc_text = docjson['text']
-
     # creating tokens
     datafram_tokens = pd.DataFrame(docjson['tokens'])
-    datafram_tokens['token'] = datafram_tokens[['start','end']].apply(
-        lambda x:doc_text[x[0]:x[1]] , axis = 1)
+    datafram_tokens['token'] = datafram_tokens[['start', 'end']].apply(
+        lambda x: doc_text[x[0]:x[1]], axis=1)
 
-    right_table = pd.DataFrame(docjson['ents'])[['start','label']]
-    datafram_tokens = pd.merge(datafram_tokens,right_table,how='left',on='start')
-    datafram_tokens.fillna('O',inplace=True)
+    right_table = pd.DataFrame(docjson['ents'])[['start', 'label']]
+    datafram_tokens = pd.merge(datafram_tokens, right_table, how='left', on='start')
+    datafram_tokens.fillna('O', inplace=True)
 
     # join lable to df_clean dataframe
     df_clean['end'] = df_clean['text'].apply(lambda x: len(x)+1).cumsum() - 1 
-    df_clean['start'] = df_clean[['text','end']].apply(lambda x: x[1] - len(x[0]),axis=1)
+    df_clean['start'] = df_clean[['text', 'end']].apply(lambda x: x[1] - len(x[0]), axis=1)
 
     # inner join with start 
-    dataframe_info = pd.merge(df_clean,datafram_tokens[['start','token','label']],how='inner',on='start')
+    dataframe_info = pd.merge(df_clean, datafram_tokens[['start', 'token', 'label']], how='inner', on='start')
 
     # Bounding Box
 
@@ -119,7 +117,7 @@ def getPredictions(image):
     bb_df['group'] = bb_df['label'].apply(grp_gen.getgroup)
 
     # right and bottom of bounding box
-    bb_df[['left','top','width','height']] = bb_df[['left', 'top', 'width', 'height']].astype(int)
+    bb_df[['left', 'top', 'width', 'height']] = bb_df[['left', 'top', 'width', 'height']].astype(int)
     bb_df['right'] = bb_df['left'] + bb_df['width']
     bb_df['bottom'] = bb_df['top'] + bb_df['height']
 
@@ -128,36 +126,47 @@ def getPredictions(image):
     group_tag_img = bb_df[col_group].groupby(by='group')
     img_tagging = group_tag_img.agg({
 
-        'left':min,
-        'right':max,
-        'top':min,
-        'bottom':max,
-        'label':np.unique,
-        'token':lambda x: " ".join(x)
+        'left': min,
+        'right': max,
+        'top': min,
+        'bottom': max,
+        'label': np.unique,
+        'token': lambda x: " ".join(x)
 
     })
 
     img_bb = image.copy()
-    for l,r,t,b,label,token in img_tagging.values:
-        cv2.rectangle(img_bb,(l,t),(r,b),(0,255,0),2)
-
-        cv2.putText(img_bb, label,(l,t),cv2.FONT_HERSHEY_PLAIN,1,(255,0,255),2)
+    for l, r, t, b, label, token in img_tagging.values:
+        cv2.rectangle(img_bb, (l, t), (r, b), (0, 255, 0), 2)
+        cv2.putText(img_bb, 
+                    str(label), 
+                    (l, t), 
+                    cv2.FONT_HERSHEY_PLAIN, 
+                    1, 
+                    (255, 0, 255), 
+                    2)
 
 
     # Entities
 
-    info_array = dataframe_info[['token','label']].values
-    entities = dict(NAME=[],ORG=[],DES=[],PHONE=[],EMAIL=[],WEB=[])
+    info_array = dataframe_info[['token', 'label']].values
+    entities = dict(NAME=[], 
+                    ORG=[], 
+                    DES=[], 
+                    PHONE=[], 
+                    EMAIL=[], 
+                    WEB=[], 
+                    ADDRESS=[], 
+                    FAX=[],
+                    CONTENT=[])
     previous = 'O'
 
     for token, label in info_array:
         bio_tag = label[0]
         label_tag = label[2:]
-
         # step -1 parse the token
-        text = parser(token,label_tag)
-
-        if bio_tag in ('B','I'):
+        text = parser(token, label_tag)
+        if bio_tag in ('B', 'I'):
 
             if previous != label_tag:
                 entities[label_tag].append(text)
@@ -172,9 +181,6 @@ def getPredictions(image):
 
                     else:
                         entities[label_tag][-1] = entities[label_tag][-1] + text
-
-
-
         previous = label_tag
         
     return img_bb, entities
