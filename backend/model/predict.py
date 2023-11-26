@@ -14,7 +14,7 @@ docscan = utils.DocumentScan()
 
 @app.route('/',methods=['GET','POST'])
 def scandoc():
-    
+ 
     if request.method == 'POST':
         file = request.files['image_name']
         upload_image_path = utils.save_upload_image(file)

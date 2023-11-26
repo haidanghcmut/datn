@@ -1,6 +1,4 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Request
-from fastapi.templating import Jinja2Templates
-from jinja2 import Environment, FileSystemLoader
 import model.settings
 import model.utils
 import numpy as np
@@ -16,8 +14,6 @@ from fastapi.middleware.cors import CORSMiddleware
 import spacy
 from fastapi.responses import JSONResponse
 import numpy as np
-from io import BytesIO
-from PIL import Image
 import pytesseract
 import base64
 
@@ -40,12 +36,12 @@ app.add_middleware(
 async def predictions(file: UploadFile = File(...)):
     try:
       contents = await file.read()
-      image = cv2.imdecode(np.frombuffer(contents, np.uint8), -1)
-      img_bb, entities = pred.getPredictions(image)
-       # Chuyển đổi ảnh thành định dạng base64 để trả về
+      image_data = cv2.imdecode(np.frombuffer(contents, np.uint8), -1)
+      img_bb, entities = pred.getPredictions(image_data)
+        # Chuyển đổi ảnh thành định dạng base64 để trả về
       _, img_encoded = cv2.imencode('.jpeg', img_bb)
       img_base64 = base64.b64encode(img_encoded).decode('utf-8')
-      return JSONResponse(content={"entities": entities})
+      return JSONResponse(entities)
     except ValueError as err:
         raise HTTPException(status_code=500, detail=err)
 
@@ -99,7 +95,6 @@ def signin(user: user_models.User):
         raise HTTPException(status_code=400, detail=check[0])
     except ValueError as err:
         raise HTTPException(status_code=500, detail="Sign In don't succeed!")
-
 
 
 if __name__ == "__main__":
