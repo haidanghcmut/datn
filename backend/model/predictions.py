@@ -13,7 +13,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 ### Load NER model
-model_ner = spacy.load('./output/model-best/')
+model_ner = spacy.load('./output_tot/model-best/')
 # Làm sạch chữ 
 def cleanText(txt):
     whitespace = string.whitespace
@@ -44,9 +44,10 @@ class groupgen():
 
 
 def parser(text, label):
-    if label == 'PHONE':
-        text = text.lower()
-        text = re.sub(r'\D', '', text)
+    if label in ('PHONE', 'FAX'):
+        allow_special_char = '@_.\-\ '  # Thêm ký tự khoảng trắng vào chuỗi
+        text = re.sub(r'[^A-Za-z0-9{} ]'.format(re.escape(allow_special_char)), '', text)
+
         
     elif label == 'EMAIL':
         text = text.lower()
@@ -58,10 +59,9 @@ def parser(text, label):
         allow_special_char = ':/.%#\-'
         text = re.sub(r'[^A-Za-z0-9{} ]'.format(allow_special_char), '', text)
         
-    elif label in ('NAME', 'DES'):
-        text = text.lower()
-        text = re.sub(r'[^a-z ]', '', text)
-        text = text.title()
+    elif label in ('NAME', 'DES', 'ADDRESS', 'CONTENT'):
+        allow_special_char = ':/.%#\-'
+        text = re.sub(r'[^A-Za-z0-9{} ]'.format(allow_special_char), '', text)
         
     elif label == 'ORG':
         text = text.lower()
@@ -176,7 +176,7 @@ def getPredictions(image):
                     entities[label_tag].append(text)
 
                 else:
-                    if label_tag in ("NAME",'ORG','DES'):
+                    if label_tag in ("NAME",'ORG','DES', 'ADDRESS', 'CONTENT', 'EMAIL', 'WEB', 'FAX', 'PHONE'):
                         entities[label_tag][-1] = entities[label_tag][-1] + " " + text
 
                     else:
@@ -184,4 +184,3 @@ def getPredictions(image):
         previous = label_tag
         
     return img_bb, entities
-

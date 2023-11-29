@@ -12,7 +12,12 @@ export const setAuthorization = (token) => {
   axios.defaults.headers.common["Authorization"] = token ? token : "";
 };
 
-export const postPredict = (file) => api.post(`/predictions/`, file);
+export const postPredict = (file) =>
+  api.post(`/predictions/`, file, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 export const signupUser = (payload) => api.post(`/signup/`, payload);
 export const signinUser = (payload) => api.post(`/signin/`, payload);
 

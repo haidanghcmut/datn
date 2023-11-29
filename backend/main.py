@@ -16,11 +16,9 @@ from fastapi.responses import JSONResponse
 import numpy as np
 import pytesseract
 import base64
-
 # docscan = utils.DocumentScan()
 app = FastAPI(title='FastAPI JWT', openapi_url='/openapi.json', docs_url='/docs', description='fastapi jwt')
 app.include_router(user_router)
-model_ner = spacy.load('./output/model-best/')
 # app.secret_key = 'scanapp'
 
 app.add_middleware(
@@ -31,9 +29,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 @app.post('/predictions/')
 async def predictions(file: UploadFile = File(...)):
+    print(file)
     try:
       contents = await file.read()
       image_data = cv2.imdecode(np.frombuffer(contents, np.uint8), -1)

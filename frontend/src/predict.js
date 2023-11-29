@@ -60,6 +60,7 @@ const useStyles = makeStyles((theme) => ({
   },
   media: {
     height: 400,
+    borderRadius: "25px",
   },
   paper: {
     padding: theme.spacing(2),
@@ -80,11 +81,11 @@ const useStyles = makeStyles((theme) => ({
   },
   imageCard: {
     margin: "auto",
-    maxWidth: 400,
-    height: 520,
+    maxWidth: "720px",
+    height: "1200px",
     backgroundColor: "transparent",
     boxShadow: "0px 9px 70px 0px rgb(0 0 0 / 30%) !important",
-    borderRadius: "15px",
+    borderRadius: "25px",
   },
   imageCardEmpty: {
     height: "auto",
@@ -387,7 +388,7 @@ const Predict = () => {
                             {data.CONTENT}
                           </TableCell>
                         </TableRow>
-                        {data.NAME != 1 && (
+                        {data.NAME !== 0 && (
                           <button
                             className="btn text-primary py-0 fs-5"
                             onClick={navigateToHome}
