@@ -40,6 +40,7 @@ export const Register = () => {
       })
       .catch((e) => {
         setLoading(false);
+        console.log(e);
       });
   };
 

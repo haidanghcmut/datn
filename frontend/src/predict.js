@@ -8,6 +8,7 @@ import Container from "@material-ui/core/Container";
 import React from "react";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
+import { HomeIcon } from "@heroicons/react/solid";
 import {
   Paper,
   CardActionArea,
@@ -115,12 +116,13 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: "transparent !important",
   },
   tableCell: {
-    fontSize: "22px",
+    fontSize: "15px",
     backgroundColor: "transparent !important",
     borderColor: "transparent !important",
     color: "#000000a6 !important",
     fontWeight: "bolder",
     padding: "1px 24px 1px 16px",
+    textAlign: "center",
   },
   tableCell1: {
     fontSize: "14px",
@@ -129,6 +131,7 @@ const useStyles = makeStyles((theme) => ({
     color: "#000000a6 !important",
     fontWeight: "bolder",
     padding: "1px 24px 1px 16px",
+    textAlign: "center",
   },
   tableBody: {
     backgroundColor: "transparent !important",
@@ -147,6 +150,8 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "center",
     flexDirection: "column",
     alignItems: "center",
+    marginTop: "10px",
+    borderRadius: "20px",
   },
   appbar: {
     background: "white",
@@ -296,13 +301,13 @@ const Predict = () => {
                             align="right"
                             className={classes.tableCell1}
                           >
-                            Email
+                            Số điện thoại
                           </TableCell>
                           <TableCell
                             align="right"
                             className={classes.tableCell}
                           >
-                            Điện thoại
+                            Địa chỉ email
                           </TableCell>
                           <TableCell
                             align="right"
@@ -390,11 +395,53 @@ const Predict = () => {
                         </TableRow>
                         {data.NAME !== 0 && (
                           <button
-                            className="btn text-primary py-0 fs-5"
+                            className="flex items-center space-x-2 text-primary mb-2 fs-5"
                             onClick={navigateToHome}
                           >
-                            Chi tiết về bệnh
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={1.5}
+                              stroke="currentColor"
+                              className="w-6 h-6"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
+                              />
+                            </svg>
+
+                            {/* Thay đổi kích thước tùy ý */}
+                            <span>Trở lại trang chủ</span>
                           </button>
+                        )}
+                        {data && (
+                          <div className="flex justify-center items-center">
+                            <button
+                              className="bg-red-500 text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline-red active:bg-red-800 flex items-center"
+                              onClick={clearData}
+                            >
+                              <span className="mr-2">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  className="h-6 w-6"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
+                                </svg>
+                              </span>
+                              Xóa
+                            </button>
+                          </div>
                         )}
                       </TableBody>
                     </Table>
@@ -414,21 +461,6 @@ const Predict = () => {
               )}
             </Card>
           </Grid>
-          {data && (
-            <Grid item className={classes.buttonGrid}>
-              <ColorButton
-                variant="contained"
-                className={classes.clearButton}
-                color="primary"
-                component="span"
-                size="large"
-                onClick={clearData}
-                startIcon={<Clear fontSize="large" />}
-              >
-                Xóa
-              </ColorButton>
-            </Grid>
-          )}
         </Grid>
       </Container>
     </React.Fragment>
@@ -436,6 +468,3 @@ const Predict = () => {
 };
 
 export default Predict;
-
-//Khi detect được lá khỏe mạnh, 'Chi tiết về bệnh' nên được ẩn đi.
-//Khi Zoom out thì phần bottom lộ vạch trắng.
