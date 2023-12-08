@@ -13,7 +13,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 ### Load NER model
-model_ner = spacy.load('./output_tot/model-best/')
+model_ner = spacy.load('./output/model-best/')
 # Làm sạch chữ 
 def cleanText(txt):
     whitespace = string.whitespace
@@ -47,7 +47,6 @@ def parser(text, label):
     if label in ('PHONE', 'FAX'):
         allow_special_char = '@_.\-\ '  # Thêm ký tự khoảng trắng vào chuỗi
         text = re.sub(r'[^A-Za-z0-9{} ]'.format(re.escape(allow_special_char)), '', text)
-
         
     elif label == 'EMAIL':
         text = text.lower()
@@ -107,7 +106,8 @@ def getPredictions(image):
     df_clean['start'] = df_clean[['text', 'end']].apply(lambda x: x[1] - len(x[0]), axis=1)
 
     # inner join with start 
-    dataframe_info = pd.merge(df_clean, datafram_tokens[['start', 'token', 'label']], how='inner', on='start')
+    dataframe_info = pd.merge(df_clean, datafram_tokens[['start', 'token', 
+                                                         'label']], how='inner', on='start')
 
     # Bounding Box
 
@@ -167,18 +167,14 @@ def getPredictions(image):
         # step -1 parse the token
         text = parser(token, label_tag)
         if bio_tag in ('B', 'I'):
-
             if previous != label_tag:
                 entities[label_tag].append(text)
-
             else:
                 if bio_tag == "B":
                     entities[label_tag].append(text)
-
                 else:
                     if label_tag in ("NAME",'ORG','DES', 'ADDRESS', 'CONTENT', 'EMAIL', 'WEB', 'FAX', 'PHONE'):
                         entities[label_tag][-1] = entities[label_tag][-1] + " " + text
-
                     else:
                         entities[label_tag][-1] = entities[label_tag][-1] + text
         previous = label_tag
