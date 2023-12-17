@@ -17,7 +17,7 @@ import numpy as np
 import pytesseract
 import base64
 # docscan = utils.DocumentScan()
-app = FastAPI(title='FastAPI JWT', openapi_url='/openapi.json', docs_url='/docs', description='fastapi jwt')
+app = FastAPI(title='FastAPI JWT', openapi_url='/openapi.json', docs_url='/docs', description='API DATN')
 app.include_router(user_router)
 # app.secret_key = 'scanapp'
 
